@@ -3,14 +3,21 @@ services:
     build: .
     container_name: yipai-web-archiver
     ports:
-      - "5010:5010"             # 默认监听 0.0.0.0，直通公网。如需反向代理，请改用 "127.0.0.1:5010:5010"
+      - "127.0.0.1:5010:5010"   # 默认仅开启本地监听以保证安全。如需直通公网，请改为 "5010:5010"
     volumes:
-      # 将宿主机的 data 目录映射到容器，确保数据库和存档文件不会随容器销毁而丢失
+      # 核心数据目录
       - ./data:/app/data
-      # 【新增】将宿主机的 config.py 挂载进容器，使用统一配置
+      # 配置文件
       - ./config.py:/app/config.py
+      # 代码目录挂载：实现 git pull 后 docker compose restart 即可生效，无需 rebuild
+      - ./static:/app/static
+      - ./templates:/app/templates
+      - ./app.py:/app/app.py
+      - ./database.py:/app/database.py
+      - ./cleaner.py:/app/cleaner.py
     environment:
       - TZ=Asia/Shanghai
+      - FLASK_DEBUG=0           # 关闭调试模式，保证性能与安全
 
     restart: unless-stopped
     logging:
