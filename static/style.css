@@ -428,3 +428,22 @@ article strong {
         transform: rotate(360deg);
     }
 }
+
+.article-footer {
+    margin-top: 80px;
+    padding: 30px 0;
+    text-align: center;
+    border-top: 1px solid var(--border-color);
+}
+
+.article-footer a {
+    color: var(--text-meta);
+    font-size: 14px;
+    text-decoration: none;
+    opacity: 0.4;
+    transition: opacity 0.3s;
+}
+
+.article-footer a:hover {
+    opacity: 0.8;
+}
