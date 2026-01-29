@@ -1,6 +1,6 @@
 import os, uuid, re
 from datetime import datetime
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, send_from_directory
 from config import *
 import database as db
 import cleaner
@@ -38,8 +38,11 @@ def upload():
     title_match = re.search(r'<title[^>]*>(.*?)</title>', content_str, re.IGNORECASE | re.DOTALL)
     title = title_match.group(1).strip() if title_match else "未命名文章"
 
-    final_content = cleaner.deep_clean(content_str)
     file_id = str(uuid.uuid4())[:8]
+    image_output_dir = os.path.join(DATA_DIR, 'media', file_id)
+    url_prefix = f"/media/{file_id}"
+
+    final_content = cleaner.deep_clean(content_str, image_output_dir=image_output_dir, url_prefix=url_prefix)
     origin_url = request.form.get('url', '')
 
     # 入库：local_filename 字段在动态渲染模式下可留空
@@ -54,6 +57,10 @@ def upload():
     ))
 
     return jsonify(status="success", url=f"/archives/{file_id}")
+
+@app.route('/media/<path:filename>')
+def serve_media(filename):
+    return send_from_directory(os.path.join(DATA_DIR, 'media'), filename)
 
 @app.route('/archives/<file_id>')
 def serve_archive(file_id):
