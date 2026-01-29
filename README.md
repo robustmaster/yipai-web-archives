@@ -42,7 +42,7 @@
 
 3.  **启动服务**:
 
-    docker-compose up -d --build
+    docker compose up -d --build
     ```
     该命令会自动构建本地镜像并启动容器。
 
@@ -52,7 +52,7 @@
 ### 进阶部署：反向代理模式
 如果你打算将此服务放在 Nginx, Traefik 或 Caddy 等反向代理服务器之后使用，建议限制端口仅供本地监听。
 
-1.  **修改 `docker-compose.yml`**:
+1.  **修改 `docker compose.yml`**:
     将 `ports` 部分修改为绑定到本地：
     ```yaml
     ports:
@@ -137,7 +137,7 @@
 
 3.  **启动服务**:
     ```bash
-    docker-compose up -d --build
+    docker compose up -d --build
     ```
     此时服务即完全恢复到备份时的状态。
 ## 批量导入历史文章
@@ -168,7 +168,7 @@ server {
     server_name archive.yourdomain.com;  # 替换为你的域名
 
     location / {
-        proxy_pass http://127.0.0.1:5010; # 对应 docker-compose 中暴露的端口
+        proxy_pass http://127.0.0.1:5010; # 对应 docker compose 中暴露的端口
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
