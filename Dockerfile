@@ -17,7 +17,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # 暴露端口
-EXPOSE 5000
+EXPOSE 5010
 
 # 使用 Gunicorn 启动
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "app:app", "--workers", "2", "--timeout", "120"]
+CMD ["gunicorn", "--bind", "0.0.0.0:5010", "app:app", "--workers", "2", "--timeout", "120"]

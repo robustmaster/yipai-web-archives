@@ -48,7 +48,7 @@
     ```
     该命令会自动构建本地镜像并启动容器。
 
-访问 `http://localhost:5000` 即可开始使用。
+访问 `http://localhost:5010` 即可开始使用。
 
 ### 方式 2：Python 直接运行（本地开发）
 如果你想进行二次开发，可以使用此方式。确保你的 Python 版本 >= 3.9。
@@ -85,10 +85,10 @@
     **调用示例**:
     ```bash
     # 示例 1: 密码通过 URL 传递，元数据包含原始链接
-    curl -F "file=@article.html" -F "url=https://mp.weixin.qq.com/s/..." "http://localhost:5000/upload?password=yourpassword"
+    curl -F "file=@article.html" -F "url=https://mp.weixin.qq.com/s/..." "http://localhost:5010/upload?password=yourpassword"
 
     # 示例 2: 所有参数均在表单中传递
-    curl -F "file=@article.html" -F "password=yourpassword" http://localhost:5000/upload
+    curl -F "file=@article.html" -F "password=yourpassword" http://localhost:5010/upload
     ```
 
 
@@ -108,7 +108,7 @@ server {
     server_name archive.yourdomain.com;  # 替换为你的域名
 
     location / {
-        proxy_pass http://127.0.0.1:5000; # 对应 docker-compose 中暴露的端口
+        proxy_pass http://127.0.0.1:5010; # 对应 docker-compose 中暴露的端口
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
