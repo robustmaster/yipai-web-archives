@@ -69,9 +69,16 @@ def serve_archive(file_id):
     if not article:
         return "归档内容已遗失", 404
 
+    # Inject lazy loading for images to improve performance
+    content = article['content']
+    if content:
+        # Add loading="lazy" attribute to all img tags
+        # Using a simple replacement that works for standard <img> tags
+        content = re.sub(r'(<img\s+)', r'\1loading="lazy" ', content, flags=re.IGNORECASE)
+
     return render_template('article.html',
                            title=article['title'],
-                           content=article['content'],
+                           content=content,
                            origin_url=article['origin_url'])
 
 @app.route('/update/<file_id>', methods=['POST'])

@@ -3,7 +3,7 @@ services:
     build: .
     container_name: yipai-web-archiver
     ports:
-      - "5010:5010"
+      - "5010:5010"             # 默认监听 0.0.0.0，直通公网。如需反向代理，请改用 "127.0.0.1:5010:5010"
     volumes:
       # 将宿主机的 data 目录映射到容器，确保数据库和存档文件不会随容器销毁而丢失
       - ./data:/app/data
