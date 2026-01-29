@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ SITE_NAME }}</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+    <div class="header" id="header">
+        <div class="header-left">
+            <h2><a href="/">{{ SITE_NAME }}</a></h2>
+            <a href="{{ AUTHOR_LINK }}" class="author-tag" target="_blank">{{ AUTHOR_NAME }}</a>
+        </div>
+        <div class="header-right">
+            <button class="manage-btn" id="manageBtn" onclick="enterAdmin()">管理</button>
+        </div>
+    </div>
+
+    <div id="list"></div>
+    <div id="sentinel" class="load-status">正在寻回记忆...</div>
+
+    <div id="customModal" class="modal-overlay">
+        <div class="modal-box">
+            <h3 id="modalTitle">管理员验证</h3>
+            <div id="modalBody">
+                <input type="password" id="adminPwdInput" placeholder="请输入管理密码..." autofocus />
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn cancel" onclick="closeModal()">取消</button>
+                <button class="modal-btn confirm" id="modalConfirmBtn">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast-container">
+        <span id="toastMessage"></span>
+    </div>
+
+    <script>
+        let page = 1;
+        let loading = false;
+        let hasMore = true;
+        const limit = {{ limit | default (10) }};
+
+        async function load() {
+            if (loading || !hasMore) return;
+            loading = true;
+            const listEl = document.getElementById('list');
+            const sentinel = document.getElementById('sentinel');
+            try {
+                const res = await fetch(`/api/list?page=${page}`);
+                const data = await res.json();
+                if (!data.articles || data.articles.length === 0) {
+                    hasMore = false;
+                    sentinel.innerText = page === 1 ? "这里空空如也" : "—— 我是有底线的 ——";
+                    return;
+                }
+                data.articles.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'card';
+                    div.id = `card-${item.id}`;
+                    div.innerHTML = `
+                        <a href="/archives/${item.id}" target="_blank">${item.title}</a>
+                        <div class="meta">
+                            <span>${item.archived_at}</span>
+                            <span class="del-btn" onclick="deleteArticle(this, '${item.id}')">删除</span>
+                        </div>
+                    `;
+                    listEl.appendChild(div);
+                });
+                if (data.articles.length < limit) {
+                    hasMore = false;
+                    sentinel.innerText = "—— 我是有底线的 ——";
+                }
+                page++;
+            } catch (err) {
+                sentinel.innerText = "加载失败，请刷新重试";
+            } finally { loading = false; }
+        }
+
+        function showToast(msg, duration = 3000) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMessage').innerText = msg;
+            toast.classList.add('active');
+            clearTimeout(window._toastTimer);
+            window._toastTimer = setTimeout(() => toast.classList.remove('active'), duration);
+        }
+
+        function openModal(callback) {
+            const modal = document.getElementById('customModal');
+            const pwdInput = document.getElementById('adminPwdInput');
+            modal.classList.add('active');
+            pwdInput.value = '';
+            setTimeout(() => pwdInput.focus(), 100);
+            document.getElementById('modalConfirmBtn').onclick = () => {
+                if (callback) callback(pwdInput.value);
+                closeModal();
+            };
+        }
+
+        function closeModal() { document.getElementById('customModal').classList.remove('active'); }
+
+        /**
+         * 修复：管理/退出状态切换逻辑
+         */
+        function enterAdmin() {
+            const btn = document.getElementById('manageBtn');
+            if (document.body.classList.contains('admin-mode')) {
+                document.body.classList.remove('admin-mode');
+                sessionStorage.removeItem('p');
+                btn.innerText = '管理';
+                showToast('已退出管理模式');
+                return;
+            }
+            openModal((pwd) => {
+                if (!pwd) return;
+                fetch('/verify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: pwd })
+                })
+                    .then(r => r.ok ? r.json() : Promise.reject())
+                    .then(d => {
+                        if (d.status === 'success') {
+                            sessionStorage.setItem('p', pwd);
+                            document.body.classList.add('admin-mode');
+                            btn.innerText = '退出';
+                            showToast('已进入管理模式');
+                        }
+                    })
+                    .catch(() => showToast('密码错误，请重试'));
+            });
+        }
+
+        async function deleteArticle(btn, id) {
+            if (!btn.classList.contains('confirming') && !btn.classList.contains('loading')) {
+                btn.innerText = '确认删除？';
+                btn.classList.add('confirming');
+                btn._timer = setTimeout(() => {
+                    if (!btn.classList.contains('loading')) {
+                        btn.innerText = '删除';
+                        btn.classList.remove('confirming');
+                    }
+                }, 3000);
+                return;
+            }
+            if (btn.classList.contains('confirming')) {
+                clearTimeout(btn._timer);
+                btn.innerHTML = '<span class="spinner"></span>';
+                btn.classList.remove('confirming');
+                btn.classList.add('loading');
+                try {
+                    const res = await fetch(`/delete/${id}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ password: sessionStorage.getItem('p') })
+                    });
+                    if (res.ok) {
+                        const card = document.getElementById(`card-${id}`);
+                        card.classList.add('removing');
+                        showToast('归档已移除');
+                        setTimeout(() => card.remove(), 500);
+                    } else { throw new Error('验证失效'); }
+                } catch (err) {
+                    showToast(err.message);
+                    btn.innerText = '删除';
+                    btn.classList.remove('loading');
+                }
+            }
+        }
+
+        const observer = new IntersectionObserver(entries => { if (entries[0].isIntersecting) load(); }, { threshold: 0.1 });
+        observer.observe(document.getElementById('sentinel'));
+
+        let lastScroll = 0;
+        window.addEventListener('scroll', () => {
+            const now = window.pageYOffset;
+            const hdr = document.getElementById('header');
+            if (now > lastScroll && now > 100) hdr.classList.add('hide');
+            else hdr.classList.remove('hide');
+            lastScroll = now;
+        }, { passive: true });
+
+        // 刷新页面自动恢复状态并修正按钮文字
+        if (sessionStorage.getItem('p')) {
+            document.body.classList.add('admin-mode');
+            const btn = document.getElementById('manageBtn');
+            if (btn) btn.innerText = '退出';
+        }
+
+        document.getElementById('customModal').addEventListener('click', (e) => { if (e.target.id === 'customModal') closeModal(); });
+    </script>
+</body>
+
+</html>

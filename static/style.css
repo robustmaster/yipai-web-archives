@@ -1,0 +1,337 @@
+/* ============================================================
+   1. 核心变量与全局重置
+   ============================================================ */
+:root {
+    --page-bg: #f5f5f7;
+    --card-bg: #ffffff;
+    --text-main: #1d1d1f;
+    --text-meta: #86868b;
+    --heading: #1d1d1f;
+    --link-color: #007aff;
+    --border-color: rgba(0, 0, 0, 0.08);
+    --accent-orange: #ff9500;
+    --header-height: 60px;
+    --meta-height: 32px;
+    /* 预设固定高度 */
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --page-bg: #000000;
+        --card-bg: #1c1c1e;
+        --text-main: #f5f5f7;
+        --heading: #ffffff;
+        --border-color: rgba(255, 255, 255, 0.12);
+    }
+}
+
+* {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+    outline: none;
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    -webkit-font-smoothing: antialiased;
+    background: var(--page-bg);
+    color: var(--text-main);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* ============================================================
+   2. 顶部导航栏 (Header)
+   ============================================================ */
+.header {
+    position: fixed;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 800px;
+    height: var(--header-height);
+    z-index: 1000;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+    border-bottom: 1px solid var(--border-color);
+    background: color-mix(in srgb, var(--page-bg) 85%, transparent);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.header.hide {
+    transform: translate(-50%, -100%);
+}
+
+.header-left {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+}
+
+.header-left h2 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.header-left h2 a {
+    color: var(--heading);
+    text-decoration: none;
+}
+
+.author-tag {
+    font-size: 13px;
+    color: var(--accent-orange);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.manage-btn {
+    font-size: 12px;
+    background: transparent;
+    border: 1px solid var(--border-color);
+    padding: 6px 14px;
+    border-radius: 8px;
+    color: var(--text-meta);
+    cursor: pointer;
+    font-weight: 500;
+    transition: 0.2s;
+}
+
+.manage-btn:hover {
+    background: var(--border-color);
+    color: var(--text-main);
+}
+
+/* ============================================================
+   3. 首页列表 (彻底修复高度抖动)
+   ============================================================ */
+#list {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 80px 20px 0;
+}
+
+.card {
+    background: var(--card-bg);
+    padding: 24px;
+    margin-bottom: 16px;
+    border-radius: 16px;
+    border: 1px solid var(--border-color);
+    transition: transform 0.4s ease, opacity 0.4s ease;
+}
+
+.card a {
+    font-size: 18px;
+    font-weight: 600;
+    text-decoration: none;
+    color: var(--text-main);
+    display: block;
+    margin-bottom: 10px;
+    line-height: 1.4;
+}
+
+/* 核心修复：固定高度并使用 flex 居中，确保占位一致 */
+.meta {
+    height: var(--meta-height);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    color: var(--text-meta);
+    overflow: hidden;
+}
+
+.del-btn {
+    display: none !important;
+    cursor: pointer;
+    color: var(--text-meta);
+    font-size: 13px;
+    padding: 4px 12px;
+    /* 减小上下内边距 */
+    height: 28px;
+    /* 强制按钮高度小于 meta 高度 */
+    border-radius: 6px;
+    user-select: none;
+    align-items: center;
+    justify-content: center;
+    min-width: 70px;
+    transition: all 0.2s;
+    background: transparent;
+}
+
+body.admin-mode .del-btn {
+    display: inline-flex !important;
+}
+
+.del-btn:hover {
+    color: #ff3b30;
+    background: rgba(255, 59, 48, 0.08);
+}
+
+.del-btn.confirming {
+    color: #ff3b30;
+    background: rgba(255, 59, 48, 0.12);
+    font-weight: 500;
+}
+
+/* ============================================================
+   4. 详情页排版
+   ============================================================ */
+article {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 100px 24px 120px;
+    font-size: 18px;
+    line-height: 1.85;
+}
+
+article h1 {
+    font-size: 32px;
+    margin-bottom: 1.2em;
+    line-height: 1.35;
+    font-weight: 700;
+    color: var(--heading);
+}
+
+article p {
+    margin: 1.6em 0;
+    text-align: justify;
+}
+
+article img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin: 2.5em auto;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.06);
+}
+
+/* ============================================================
+   5. 弹窗与 Toast
+   ============================================================ */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: 0.3s;
+    z-index: 2000;
+}
+
+.modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-box {
+    background: var(--card-bg);
+    width: 320px;
+    padding: 32px 24px;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    text-align: center;
+    border: 1px solid var(--border-color);
+}
+
+.modal-box h3 {
+    margin: 0 0 20px;
+    font-size: 19px;
+    font-weight: 600;
+}
+
+.modal-box input {
+    width: 100%;
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    background: var(--page-bg);
+    color: var(--text-main);
+    margin-bottom: 24px;
+    font-size: 16px;
+}
+
+.modal-footer {
+    display: flex;
+    gap: 12px;
+}
+
+.modal-btn {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: 0.2s;
+}
+
+.modal-btn.cancel {
+    background: var(--page-bg);
+    color: var(--text-meta);
+}
+
+.modal-btn.confirm {
+    background: var(--link-color);
+    color: white;
+}
+
+.toast-container {
+    position: fixed;
+    bottom: 40px;
+    left: 50%;
+    transform: translate(-50%, 100px);
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(20px);
+    color: white;
+    padding: 10px 24px;
+    border-radius: 20px;
+    font-size: 14px;
+    z-index: 3000;
+    transition: 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+    opacity: 0;
+    pointer-events: none;
+}
+
+.toast-container.active {
+    transform: translate(-50%, 0);
+    opacity: 1;
+}
+
+.load-status {
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 80px 20px;
+    color: var(--text-meta);
+    font-size: 13px;
+    opacity: 0.6;
+}
+
+.spinner {
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255, 59, 48, 0.2);
+    border-top-color: #ff3b30;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}

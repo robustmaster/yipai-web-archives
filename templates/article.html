@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }} - {{ SITE_NAME }}</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+    <div class="header" id="header">
+        <div class="header-left">
+            <h2><a href="/">{{ SITE_NAME }}</a></h2>
+            <a href="{{ AUTHOR_LINK }}" class="author-tag" target="_blank">{{ AUTHOR_NAME }}</a>
+        </div>
+        <div class="header-right">
+            <a href="{{ origin_url }}" class="manage-btn" target="_blank" style="text-decoration: none;">原文</a>
+        </div>
+    </div>
+
+    <article>
+        <h1>{{ title }}</h1>
+        {{ content | safe }}
+    </article>
+
+    <div id="toast" class="toast-container">
+        <span id="toastMessage"></span>
+    </div>
+
+    <script>
+        // 导航栏滚动逻辑
+        let lastScroll = 0;
+        window.addEventListener('scroll', () => {
+            const now = window.pageYOffset;
+            const hdr = document.getElementById('header');
+            if (now > lastScroll && now > 100) hdr.classList.add('hide');
+            else hdr.classList.remove('hide');
+            lastScroll = now;
+        }, { passive: true });
+
+        // 通用 Toast 提示函数
+        function showToast(msg, duration = 3000) {
+            const toast = document.getElementById('toast');
+            const msgEl = document.getElementById('toastMessage');
+            msgEl.innerText = msg;
+            toast.classList.add('active');
+            clearTimeout(window._toastTimer);
+            window._toastTimer = setTimeout(() => toast.classList.remove('active'), duration);
+        }
+    </script>
+</body>
+
+</html>

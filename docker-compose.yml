@@ -1,0 +1,21 @@
+services:
+  yipai-web-archiver:
+    build: .
+
+    container_name: yipai-web-archiver
+    ports:
+      - "5000:5000"
+    volumes:
+      # 将宿主机的 data 目录映射到容器，确保数据库和存档文件不会随容器销毁而丢失
+      - ./data:/app/data
+      # 【新增】将宿主机的 config.py 挂载进容器，使用统一配置
+      - ./config.py:/app/config.py
+    environment:
+      - TZ=Asia/Shanghai
+
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
