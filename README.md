@@ -93,9 +93,41 @@
 
 
 
-## 数据备份
-所有数据都存储在 `data/` 目录下。要备份数据，只需备份该目录即可。
+## 数据备份与恢复
+所有数据均存储在 `data/` 目录下。本项目提供了一个自动化备份脚本 `backup.sh`，方便你进行数据迁移或容灾。
 
+### 自动备份
+运行项目根目录下的备份脚本：
+```bash
+./backup.sh
+```
+
+该脚本会：
+1.  **自动打包**: 将 `data/` 目录（含数据库和图片）以及 `config.py` 打包为 `backups/yipai_archive_data_TIMESTAMP.tar.gz`。
+    -   **注意**: 即使项目代码丢失，只要有此备份包，即可在新环境恢复。
+2.  **优化数据库**: 在备份前自动执行 SQLite `VACUUM` 操作以精简数据库体积。
+3.  **异地同步 (可选)**: 如果你的系统安装并配置了 `rclone` (Remote 名为 `keep-yipai-me`)，脚本会自动将备份包上传至云端存储。如果未配置，则仅在本地生成备份包，不会报错。
+
+### 恢复指南
+在新服务器或重新部署时，恢复步骤非常简单：
+
+1.  **重新下载代码**:
+    ```bash
+    git clone https://github.com/robustmaster/yipai-web-archives.git
+    cd yipai-web-archives
+    ```
+2.  **恢复数据**:
+    将备份包（`.tar.gz`）上传至服务器并解压到项目根目录：
+    ```bash
+    tar -xzvf yipai_archive_data_2026xxxx_xxxxxx.tar.gz
+    ```
+    此操作会直接恢复 `data/` 目录和 `config.py` 配置文件。
+
+3.  **启动服务**:
+    ```bash
+    docker-compose up -d --build
+    ```
+    此时服务即完全恢复到备份时的状态。
 ## 批量导入历史文章
 如果你有大量保存的 HTML 网页文件（如 `SingleFile` 或 `SavePage WE` 保存的），可以使用项目自带的脚本进行批量导入。
 
