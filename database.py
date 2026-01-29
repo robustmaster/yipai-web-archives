@@ -53,6 +53,14 @@ def get_article_by_id(file_id):
     finally:
         conn.close()
 
+def update_article_content(file_id, content):
+    conn = get_db_connection()
+    try:
+        conn.execute("UPDATE articles SET content = ? WHERE id = ?", (content, file_id))
+        conn.commit()
+    finally:
+        conn.close()
+
 def delete_article_db(file_id):
     conn = get_db_connection()
     try:

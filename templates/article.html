@@ -15,14 +15,36 @@
             <a href="{{ AUTHOR_LINK }}" class="author-tag" target="_blank">{{ AUTHOR_NAME }}</a>
         </div>
         <div class="header-right">
-            <a href="{{ origin_url }}" class="manage-btn" target="_blank" style="text-decoration: none;">原文</a>
+            <div id="viewBtns">
+                <button id="mainActionBtn" class="manage-btn" onclick="handleMainAction()">管理</button>
+                <a href="{{ origin_url }}" class="manage-btn" target="_blank" style="text-decoration: none;">原文</a>
+            </div>
+            <div id="editBtns" style="display: none; gap: 10px;">
+                <button class="manage-btn" onclick="toggleEdit()">取消</button>
+                <button class="manage-btn" onclick="saveContent()"
+                    style="background: var(--link-color); color: white; border: none;">保存</button>
+            </div>
         </div>
     </div>
 
-    <article>
+    <article id="articleContent">
         <h1>{{ title }}</h1>
-        {{ content | safe }}
+        <div id="articleBody">{{ content | safe }}</div>
     </article>
+    <textarea id="editor" spellcheck="false"></textarea>
+
+    <div id="customModal" class="modal-overlay">
+        <div class="modal-box">
+            <h3 id="modalTitle">管理员验证</h3>
+            <div id="modalBody">
+                <input type="password" id="adminPwdInput" placeholder="请输入管理密码..." autofocus />
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn cancel" onclick="closeModal()">取消</button>
+                <button class="modal-btn confirm" id="modalConfirmBtn">确定</button>
+            </div>
+        </div>
+    </div>
 
     <div id="toast" class="toast-container">
         <span id="toastMessage"></span>
@@ -48,6 +70,132 @@
             clearTimeout(window._toastTimer);
             window._toastTimer = setTimeout(() => toast.classList.remove('active'), duration);
         }
+
+        /* ---------------- 编辑功能逻辑 ---------------- */
+        const articleEl = document.getElementById('articleContent');
+        const bodyEl = document.getElementById('articleBody');
+        const editorEl = document.getElementById('editor');
+        const viewBtns = document.getElementById('viewBtns');
+        const editBtns = document.getElementById('editBtns');
+        const mainActionBtn = document.getElementById('mainActionBtn');
+        const fileId = "{{ request.path.split('/')[-1] }}";
+
+        // Initialize Button State
+        if (localStorage.getItem('p')) {
+            mainActionBtn.innerText = "编辑";
+            document.body.classList.add('admin-mode');
+        }
+
+        function handleMainAction() {
+            if (localStorage.getItem('p')) {
+                toggleEdit();
+            } else {
+                openModal((pwd) => {
+                    fetch('/verify', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ password: pwd })
+                    }).then(res => {
+                        if (res.ok) {
+                            localStorage.setItem('p', pwd);
+                            mainActionBtn.innerText = "编辑";
+                            showToast("已获取管理权限");
+                        } else {
+                            showToast("密码错误");
+                        }
+                    }).catch(() => showToast("验证失败"));
+                });
+            }
+        }
+
+        function formatHTML(html) {
+            // Basic formatting for the textarea to be readable
+            // This is a much simpler version, just adding newlines for main tags
+            return html.replace(/>/g, '>\n').replace(/</g, '\n<').replace(/\n\n/g, '\n').trim();
+        }
+
+        function toggleEdit() {
+            const isEditing = editorEl.classList.toggle('active');
+            articleEl.style.display = isEditing ? 'none' : 'block';
+            viewBtns.style.display = isEditing ? 'none' : 'flex';
+            editBtns.style.display = isEditing ? 'flex' : 'none';
+
+            if (isEditing) {
+                // Load content into textarea
+                editorEl.value = bodyEl.innerHTML.trim();
+            }
+        }
+
+        function openModal(callback) {
+            const modal = document.getElementById('customModal');
+            const pwdInput = document.getElementById('adminPwdInput');
+            modal.classList.add('active');
+            pwdInput.value = '';
+            setTimeout(() => pwdInput.focus(), 100);
+
+            // 绑定确定按钮
+            const confirmBtn = document.getElementById('modalConfirmBtn');
+            confirmBtn.onclick = () => {
+                const val = pwdInput.value;
+                if (val) callback(val);
+                closeModal();
+            };
+
+            // 绑定回车键
+            pwdInput.onkeyup = (e) => {
+                if (e.key === 'Enter') {
+                    const val = pwdInput.value;
+                    if (val) callback(val);
+                    closeModal();
+                }
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('customModal').classList.remove('active');
+        }
+
+        async function saveContent() {
+            const content = editorEl.value;
+            const pwd = localStorage.getItem('p');
+
+            if (!pwd) {
+                openModal((newPwd) => {
+                    localStorage.setItem('p', newPwd);
+                    saveContent(); // 递归调用重试
+                });
+                return;
+            }
+
+            try {
+                const res = await fetch(`/update/${fileId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: pwd, content: content })
+                });
+
+                if (res.ok) {
+                    showToast('保存成功');
+                    // 延迟刷新以显示 Toast
+                    setTimeout(() => location.reload(), 800);
+                } else {
+                    if (res.status === 401) {
+                        localStorage.removeItem('p');
+                        showToast('密码错误或已失效');
+                        setTimeout(() => saveContent(), 1000); // 重新触发流程
+                    } else {
+                        throw new Error('保存失败');
+                    }
+                }
+            } catch (e) {
+                showToast(e.message);
+            }
+        }
+
+        // 点击遮罩关闭 Modal
+        document.getElementById('customModal').addEventListener('click', (e) => {
+            if (e.target.id === 'customModal') closeModal();
+        });
     </script>
 </body>
 

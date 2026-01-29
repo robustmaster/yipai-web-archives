@@ -74,6 +74,17 @@ def serve_archive(file_id):
                            content=article['content'],
                            origin_url=article['origin_url'])
 
+@app.route('/update/<file_id>', methods=['POST'])
+def update(file_id):
+    data = request.json
+    pwd = data.get('password')
+    content = data.get('content')
+    
+    if pwd != SERVER_PASSWORD: return jsonify(error="Unauthorized"), 401
+    
+    db.update_article_content(file_id, content)
+    return jsonify(status="success")
+
 @app.route('/delete/<file_id>', methods=['POST'])
 def delete(file_id):
     if request.json.get('password') != SERVER_PASSWORD: return jsonify(error="Unauthorized"), 401

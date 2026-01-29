@@ -110,7 +110,7 @@
             const btn = document.getElementById('manageBtn');
             if (document.body.classList.contains('admin-mode')) {
                 document.body.classList.remove('admin-mode');
-                sessionStorage.removeItem('p');
+                localStorage.removeItem('p');
                 btn.innerText = '管理';
                 showToast('已退出管理模式');
                 return;
@@ -125,7 +125,7 @@
                     .then(r => r.ok ? r.json() : Promise.reject())
                     .then(d => {
                         if (d.status === 'success') {
-                            sessionStorage.setItem('p', pwd);
+                            localStorage.setItem('p', pwd);
                             document.body.classList.add('admin-mode');
                             btn.innerText = '退出';
                             showToast('已进入管理模式');
@@ -156,7 +156,7 @@
                     const res = await fetch(`/delete/${id}`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ password: sessionStorage.getItem('p') })
+                        body: JSON.stringify({ password: localStorage.getItem('p') })
                     });
                     if (res.ok) {
                         const card = document.getElementById(`card-${id}`);
@@ -185,7 +185,7 @@
         }, { passive: true });
 
         // 刷新页面自动恢复状态并修正按钮文字
-        if (sessionStorage.getItem('p')) {
+        if (localStorage.getItem('p')) {
             document.body.classList.add('admin-mode');
             const btn = document.getElementById('manageBtn');
             if (btn) btn.innerText = '退出';

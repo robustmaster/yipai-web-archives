@@ -111,6 +111,41 @@ body {
     color: var(--text-main);
 }
 
+.header-right {
+    display: flex;
+    align-items: center;
+}
+
+#viewBtns,
+#editBtns {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+#editor {
+    width: 100%;
+    min-height: 60vh;
+    font-family: monospace;
+    padding: 20px;
+    background: var(--card-bg);
+    color: var(--text-main);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    line-height: 1.5;
+    resize: vertical;
+    margin-top: 100px;
+    margin-bottom: 50px;
+    display: none;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#editor.active {
+    display: block;
+}
+
 /* ============================================================
    3. 首页列表 (彻底修复高度抖动)
    ============================================================ */
