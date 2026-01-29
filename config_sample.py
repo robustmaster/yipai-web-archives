@@ -3,7 +3,7 @@ import os
 # 站点配置
 SITE_NAME = os.environ.get("SITE_NAME", "Local Archive")
 AUTHOR_NAME = os.environ.get("AUTHOR_NAME", "@Me")
-AUTHOR_LINK = os.environ.get("AUTHOR_LINK", "https://github.com/yourusername/single-archive")
+AUTHOR_LINK = os.environ.get("AUTHOR_LINK", "https://github.com/robustmaster/yipai-web-archives")
 ITEMS_PER_PAGE = int(os.environ.get("ITEMS_PER_PAGE", 10))
 
 # 安全配置

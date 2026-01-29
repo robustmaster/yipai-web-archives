@@ -1,4 +1,4 @@
-# 一派收藏夹 (SingleArchive)
+# 一派收藏夹 (yipai-web-archives)
 
 这是一个自托管的个人网页归档工具，用于将网页保存、清洗并存储在本地。它专门针对 **微信公众号** 文章进行了优化，能够去除干扰元素，只保留核心内容。
 
@@ -16,8 +16,8 @@
 
 1.  **克隆代码**:
     ```bash
-    git clone https://github.com/yourusername/single-archive.git
-    cd single-archive
+    git clone https://github.com/robustmaster/yipai-web-archives.git
+    cd yipai-web-archives
     ```
 
 2.  **配置环境**:
