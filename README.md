@@ -96,6 +96,22 @@
 ## 数据备份
 所有数据都存储在 `data/` 目录下。要备份数据，只需备份该目录即可。
 
+## 批量导入历史文章
+如果你有大量保存的 HTML 网页文件（如 `SingleFile` 或 `SavePage WE` 保存的），可以使用项目自带的脚本进行批量导入。
+
+1.  将 HTML 文件放入 `to-be-imported/` 目录中。
+2.  运行导入脚本（需确保已安装依赖或在 Docker 容器内运行）：
+    ```bash
+    # 本地环境
+    python batch_import.py
+
+    # Docker 环境（需进入容器）
+    docker exec -it yipai-web-archiver python batch_import.py
+    ```
+3.  脚本会自动提取标题、发布时间并清洗内容。
+4.  导入成功的源文件会被移动到 `to-be-imported/imported/` 目录归档。
+
+
 ## 高级部署建议 (Nginx & HTTPS)
 为了在生产环境中更安全地使用，建议使用 Nginx 作为反向代理，并配置 HTTPS。
 

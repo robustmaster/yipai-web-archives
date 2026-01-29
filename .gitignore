@@ -38,6 +38,9 @@ data/
 *.sqlite3
 config.py
 
+# User Import Data
+to-be-imported/
+
 # Flask
 instance/
 .webassets-cache
