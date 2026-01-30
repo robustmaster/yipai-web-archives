@@ -1,178 +1,195 @@
-# 一派收藏夹 (yipai-web-archives)
+# 一派收藏夹 (yipai-web-archiver)
 
-这是一个自托管的个人网页归档工具，用于将网页保存、清洗并存储在本地。它专门针对 **微信公众号** 文章进行了优化，能够去除干扰元素，只保留核心内容。
+一个自托管的个人网页归档工具，用于将网页保存、清洗并存储在本地。专为 **微信公众号** 文章优化，能够去除干扰元素，只保留核心内容。
 
-## 功能特性
--   **深度清洗**: 移除平台特定的干扰元素（如微信卡片、广告等），并使用 `readability` 算法提取正文。
--   **本地存储**: 文章内容保存于本地 SQLite 数据库 (`archive.db`)，数据完全掌控在自己手中。
--   **沉浸阅读**: 提供简洁无干扰的 Web 阅读界面。
--   **安全保护**: 上传和管理接口均受密码保护。
--   **Docker 部署**: 支持一键 Docker 部署，开箱即用。
+## ✨ 功能特性
 
-## 安装指南
+- **深度清洗** — 移除平台干扰元素（微信卡片、广告等），使用 Readability 算法提取正文
+- **本地存储** — 文章保存于本地 SQLite 数据库，数据完全自主掌控
+- **沉浸阅读** — 简洁无干扰的 Web 阅读界面
+- **安全保护** — 上传和管理接口均受密码保护
+- **一键部署** — 支持 Docker 部署，开箱即用
 
-### 方式 1：Docker 部署（推荐）
-这是最简单、最稳妥的部署方式。
+---
 
-1.  **克隆代码**:
-    ```bash
-    git clone https://github.com/robustmaster/yipai-web-archives.git
-    cd yipai-web-archives
-    ```
+## 🚀 快速开始
 
-2.  **修改配置**:
-    首先复制示例配置文件：
-    ```bash
-    cp config_sample.py config.py
-    ```
+### Docker 部署（推荐）
 
-    然后编辑 `config.py`。**这是必须的一步**，你至少需要修改默认密码。
+```bash
+# 1. 克隆代码
+git clone https://github.com/robustmaster/yipai-web-archiver.git
+cd yipai-web-archiver
 
-    ### 核心配置项
+# 2. 创建配置文件
+cp config_sample.py config.py
 
-    | 配置项 | 说明 | 默认值 | 必需 |
-    | :--- | :--- | :--- | :--- |
-    | `SERVER_PASSWORD` | **管理密码**。用于上传、删除文章时的鉴权。**初次部署必须修改此项**，否则服务将因安全检查而拒绝启动。 | `"changeme"` | ✅ 是 |
-    | `SITE_NAME` | **网站名称**。显示在浏览器标题栏和页面左上角的网站标题。 | `"Local Archive"` | ❌ 否 |
-    | `AUTHOR_NAME` | **维护者名称**。显示在页面左上角网站标题的旁边的作者标签。 | `"@Me"` | ❌ 否 |
-    | `AUTHOR_LINK` | **维护者链接**。点击维护者名称时跳转的链接（如 GitHub 主页或个人博客）。 | `.../yipai...` | ❌ 否 |
-    | `ITEMS_PER_PAGE` | **每页条数**。首页文章列表每页显示的文章数量。 | `10` | ❌ 否 |
+# 3. 编辑 config.py，至少修改 SERVER_PASSWORD
 
-    > **提示**: 本项目也支持通过环境变量覆盖配置（适用于 Docker 部署），变量名与配置项名称一致。
-
-3.  **启动服务**:
-    ```bash
-    docker compose up -d --build
-    ```
-    该命令会自动构建本地镜像并启动容器。
-
-
-> [!IMPORTANT]
-> **关于网络安全的说明**: 默认的 `docker-compose.yml` 仅将容器端口映射到主机的 `127.0.0.1:5010`。这意味着该服务**默认无法从公网直接访问**。这种配置最适合配合反向代理（如 Nginx）使用。
-
-### 进阶部署：公网直接访问 / 反向代理
-本项目默认配置为最安全的“本地监听”模式。根据你的需求，可以进行如下调整：
-
-**场景 A：我需要直通公网（不使用反向代理）**
-1.  **修改 `docker-compose.yml`**:
-    将 `ports` 部分修改为监听所有 IP：
-    ```yaml
-    ports:
-      - "5010:5010"
-    ```
-
-**场景 B：使用反向代理（推荐）**
-本项目默认已绑定至 `127.0.0.1`，你可以直接按照下文的 [高级部署建议](#高级部署建议-nginx--https) 配置 Nginx。
+# 4. 启动服务
+docker compose up -d --build
+```
 
 访问 `http://localhost:5010` 即可开始使用。
 
-### 方式 2：Python 直接运行（本地开发）
-如果你想进行二次开发，可以使用此方式。确保你的 Python 版本 >= 3.9。
+> [!IMPORTANT]
+> 默认仅监听 `127.0.0.1:5010`，无法从公网直接访问。如需公网访问，请参阅 [网络配置](#网络配置) 章节。
 
-1.  **安装依赖**:
-    注意：系统可能需要 `libxml2-dev` 和 `libxslt-dev` 等库的支持。
-    ```bash
-    pip install -r requirements.txt
-    ```
+### 本地开发
 
-2.  **配置**:
-    ```bash
-    cp config_sample.py config.py
-    # 编辑 config.py 并修改 SERVER_PASSWORD
-    ```
+适用于二次开发。确保 Python >= 3.9，系统需安装 `libxml2-dev` 和 `libxslt-dev`。
 
-3.  **运行**:
-    ```bash
-    python app.py
-    ```
+```bash
+pip install -r requirements.txt
+cp config_sample.py config.py
+# 编辑 config.py
+python app.py
+```
 
-## 使用说明
--   **浏览**: 访问首页 `/` 查看已归档的文章列表。
--   **API 上传**: 
-    向 `/upload` 接口发送 POST 请求。支持通过 multipart/form-data 上传文件。
+---
 
-    **参数说明**:
-    -   `file`: (必填, File) 需要归档的 HTML 文件。
-    -   `url`: (可选, String) 文章的原始链接，用于记录来源。
-    -   `password`: (必填, String) 鉴权密码。支持两种传递方式：
-        -   **URL 参数**: `?password=YOUR_PASSWORD` (推荐)
-        -   **Form 字段**: 在表单中包含 `password` 字段。
+## ⚙️ 配置说明
 
-    **调用示例**:
-    ```bash
-    # 示例 1: 密码通过 URL 传递，元数据包含原始链接
-    curl -F "file=@article.html" -F "url=https://mp.weixin.qq.com/s/..." "http://localhost:5010/upload?password=yourpassword"
+编辑 `config.py` 文件进行配置。也可通过同名环境变量覆盖（适用于 Docker）。
 
-    # 示例 2: 所有参数均在表单中传递
-    curl -F "file=@article.html" -F "password=yourpassword" http://localhost:5010/upload
-    ```
+| 配置项 | 说明 | 默认值 | 必需 |
+| :--- | :--- | :--- | :---: |
+| `SERVER_PASSWORD` | 管理密码，用于上传/删除鉴权。**初次部署必须修改** | `"changeme"` | ✅ |
+| `SITE_NAME` | 网站名称，显示在标题栏和页面左上角 | `"Local Archive"` | ❌ |
+| `AUTHOR_NAME` | 维护者名称，显示在网站标题旁 | `"@Me"` | ❌ |
+| `AUTHOR_LINK` | 维护者链接（如 GitHub 主页） | — | ❌ |
+| `ITEMS_PER_PAGE` | 首页文章列表每页显示数量 | `10` | ❌ |
 
+---
 
+## 📖 使用指南
 
-## 数据备份与恢复
-所有数据均存储在 `data/` 目录下。本项目提供了一个自动化备份脚本 `backup.sh`，方便你进行数据迁移或容灾。
+### 配合 SingleFile 使用（推荐）
 
-### 自动备份
-运行项目根目录下的备份脚本：
+推荐配合 [**SingleFile**](https://chromewebstore.google.com/detail/singlefile/mpiodijhokgodhhofbcjdecpffjipkle) 浏览器扩展使用，获得最佳归档体验。
+
+**为什么选择 SingleFile？**
+- 将网页的 HTML、CSS、图片等合并为单个 `.html` 文件
+- 所见即所得，保存时页面是什么状态就保存什么状态
+- 生成的文件完全自包含，无需网络即可查看
+
+#### 方式一：一键保存到服务器（推荐）
+
+SingleFile 支持直接保存到 REST API。配置方法：
+
+1. 打开 SingleFile 扩展的 **设置页面**
+2. 找到「**保存位置**」，选择「**保存到 REST 表单 API**」
+3. 填写配置：
+   - **网址**: `https://你的域名/upload?password=你的密码`
+   - **文件字段名称**: `file`
+   - **网址字段名称**: `url`
+
+![SingleFile 插件配置示例](singlefile-config.png)
+
+配置完成后，点击 SingleFile 图标即可一键保存网页到归档服务器。
+
+#### 方式二：先保存再上传
+
+1. 点击 SingleFile 图标，等待处理完成后下载 `.html` 文件
+2. 通过 API 接口或批量导入功能上传
+
+---
+
+### API 接口
+
+向 `/upload` 发送 POST 请求上传文件（multipart/form-data）。
+
+**参数：**
+| 参数 | 类型 | 必需 | 说明 |
+| :--- | :--- | :---: | :--- |
+| `file` | File | ✅ | 需归档的 HTML 文件 |
+| `url` | String | ❌ | 文章原始链接，用于记录来源 |
+| `password` | String | ✅ | 鉴权密码（可通过 URL 参数或表单字段传递） |
+
+**示例：**
+```bash
+# 密码通过 URL 传递
+curl -F "file=@article.html" -F "url=https://mp.weixin.qq.com/s/..." \
+     "http://localhost:5010/upload?password=yourpassword"
+
+# 密码通过表单传递
+curl -F "file=@article.html" -F "password=yourpassword" \
+     http://localhost:5010/upload
+```
+
+---
+
+### 批量导入
+
+适用于导入大量历史 HTML 文件（如 SingleFile 或 SavePage WE 保存的）。
+
+```bash
+# 1. 将 HTML 文件放入 to-be-imported/ 目录
+
+# 2. 运行导入脚本
+python batch_import.py                    # 本地环境
+docker exec -it yipai-web-archiver python batch_import.py  # Docker 环境
+```
+
+脚本会自动提取标题、发布时间并清洗内容。导入成功的文件会移动到 `to-be-imported/imported/` 目录。
+
+---
+
+## 💾 数据备份与恢复
+
+所有数据存储在 `data/` 目录下。项目提供自动化备份脚本。
+
+### 备份
+
 ```bash
 ./backup.sh
 ```
 
-该脚本会：
-1.  **自动打包**: 将 `data/` 目录（含数据库和图片）以及 `config.py` 打包为 `backups/yipai_archive_data_TIMESTAMP.tar.gz`。
-    -   **注意**: 即使项目代码丢失，只要有此备份包，即可在新环境恢复。
-2.  **优化数据库**: 在备份前自动执行 SQLite `VACUUM` 操作以精简数据库体积。
-3.  **异地同步 (可选)**: 如果你的系统安装并配置了 `rclone` (Remote 名为 `keep-yipai-me`)，脚本会自动将备份包上传至云端存储。如果未配置，则仅在本地生成备份包，不会报错。
+脚本功能：
+1. 将 `data/` 目录和 `config.py` 打包为 `backups/yipai_archive_data_TIMESTAMP.tar.gz`
+2. 备份前自动执行 SQLite VACUUM 操作精简数据库
+3. 如已配置 rclone（Remote 名为 `keep-yipai-me`），自动上传至云端
 
-### 恢复指南
-在新服务器或重新部署时，恢复步骤非常简单：
+### 恢复
 
-1.  **重新下载代码**:
-    ```bash
-    git clone https://github.com/robustmaster/yipai-web-archives.git
-    cd yipai-web-archives
-    ```
-2.  **恢复数据**:
-    将备份包（`.tar.gz`）上传至服务器并解压到项目根目录：
-    ```bash
-    tar -xzvf yipai_archive_data_2026xxxx_xxxxxx.tar.gz
-    ```
-    此操作会直接恢复 `data/` 目录和 `config.py` 配置文件。
+```bash
+# 1. 克隆代码
+git clone https://github.com/robustmaster/yipai-web-archiver.git
+cd yipai-web-archiver
 
-3.  **启动服务**:
-    ```bash
-    docker compose up -d --build
-    ```
-    此时服务即完全恢复到备份时的状态。
-## 批量导入历史文章
-如果你有大量保存的 HTML 网页文件（如 `SingleFile` 或 `SavePage WE` 保存的），可以使用项目自带的脚本进行批量导入。
+# 2. 解压备份包
+tar -xzvf yipai_archive_data_XXXXXXXX_XXXXXX.tar.gz
 
-1.  将 HTML 文件放入 `to-be-imported/` 目录中。
-2.  运行导入脚本（需确保已安装依赖或在 Docker 容器内运行）：
-    ```bash
-    # 本地环境
-    python batch_import.py
+# 3. 启动服务
+docker compose up -d --build
+```
 
-    # Docker 环境（需进入容器）
-    docker exec -it yipai-web-archiver python batch_import.py
-    ```
-3.  脚本会自动提取标题、发布时间并清洗内容。
-4.  导入成功的源文件会被移动到 `to-be-imported/imported/` 目录归档。
+---
 
+## 🔧 高级配置
 
-## 高级部署建议 (Nginx & HTTPS)
-为了在生产环境中更安全地使用，建议使用 Nginx 作为反向代理，并配置 HTTPS。
+### 网络配置
 
-### Nginx 配置示例
-在你的 Nginx 配置文件中（如 `/etc/nginx/sites-available/archive`）添加：
+默认仅监听本地。根据需求调整：
+
+**直接公网访问**（不使用反向代理）：
+```yaml
+# docker-compose.yml
+ports:
+  - "5010:5010"  # 监听所有 IP
+```
+
+**使用反向代理**（推荐）：保持默认配置，按下文配置 Nginx。
+
+### Nginx + HTTPS
 
 ```nginx
 server {
     listen 80;
-    server_name archive.yourdomain.com;  # 替换为你的域名
+    server_name archive.yourdomain.com;
 
     location / {
-        proxy_pass http://127.0.0.1:5010; # 对应 docker compose 中暴露的端口
+        proxy_pass http://127.0.0.1:5010;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -180,18 +197,14 @@ server {
 }
 ```
 
-### 启用 HTTPS
-推荐使用 `certbot` 自动申请和配置免费的 SSL 证书。
+使用 Certbot 自动配置 HTTPS：
+```bash
+sudo apt-get install certbot python3-certbot-nginx
+sudo certbot --nginx -d archive.yourdomain.com
+```
 
-1.  **安装 Certbot**:
-    ```bash
-    sudo apt-get install certbot python3-certbot-nginx
-    ```
-2.  **申请证书**:
-    ```bash
-    sudo certbot --nginx -d archive.yourdomain.com
-    ```
-    按照提示操作即可，Certbot 会自动修改 Nginx 配置以启用 HTTPS。
+---
 
-## 开源协议
+## 📄 开源协议
+
 MIT
